@@ -23,7 +23,9 @@ class General_model extends Main_model
 
     public function editList($data,$id){
         $where = "id = ".$id;
-        return $this->update($this->table_name,$data,$where);
+        $data['silver_display'] = $data['silver_display'] == "true"?1:0;
+        $this->update($this->table_name,$data,$where);
+        return true;
     }
 
 

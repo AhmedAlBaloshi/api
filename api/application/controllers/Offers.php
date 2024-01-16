@@ -11,8 +11,8 @@ class Offers extends CI_Controller{
     public $_Errmessage = 'Error';
     public $_ParamMessage = 'Invalid Field';
 
-    public $_table_column_array = ['available','code','details','discount','expire','min','type','upto','status'];
-    public $_table_column_edit = ['id','available','code','details','discount','expire','min','type','upto','status'];
+    public $_table_column_array = ['title', 'store_id','product_id','is_promo', 'image', 'free_delivery','code','details','discount','expire','min','type','upto','status'];
+    public $_table_column_edit = ['id','title', 'store_id','product_id','is_promo', 'image', 'free_delivery','code','details','discount','expire','min','type','upto','status'];
     public $required = ['id'];
     public $codeRequired = ['code'];
 

@@ -52,6 +52,27 @@ class Products extends CI_Controller{
             echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
         }
     }
+    
+    public function getForSelect(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Product_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->Product_model->get_for_select();
+            if($data != null){
+                echo $this->json->response($data,$this->_OKmessage,$this->_statusOK);
+            }else{
+                echo $this->json->response($this->db->error(),$this->_Errmessage,$this->_statusErr);
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
 
     public function getAllProductsbyAgent(){
         $agent = $this->input->request_headers();
@@ -344,6 +365,7 @@ class Products extends CI_Controller{
                 $result = $this->Product_model->editList($_POST,$_POST['id']);
 
                 if($result != null){
+                    $result = $this->Product_model->getByIdValue($result);
                     echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
                 }else{
                     echo $this->json->response(['error'=>'something went wrong.'],$this->_Errmessage,$this->_statusErr);

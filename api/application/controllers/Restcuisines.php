@@ -31,6 +31,28 @@ class Restcuisines extends CI_Controller{
         }
     }
     
+    public function getByStoreId(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Restcuisines_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->Restcuisines_model->getByStoreId($_POST['id']);
+            if($data != null){
+                echo $this->json->response($data,$this->_OKmessage,$this->_statusOK);
+            }else{
+                echo $this->json->response($this->db->error(),$this->_Errmessage,$this->_statusErr);
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+        
+    }
+
     public function index(){
         $agent = $this->input->request_headers();
         // $saveLogInfo = array(

@@ -42,7 +42,11 @@ class Zones_model extends Main_model
     }
 
     public function getAllZones(){
-        $data = $this->get($this->table_name);
+        $this->db->select('*');
+        $this->db->from($this->table_name);
+        $this->db->order_by('id', 'desc');
+        $data = $this->db->get()->result();
+     
         return $data;
     }
     

@@ -11,8 +11,8 @@ class General extends CI_Controller{
     public $_Errmessage = 'Error';
     public $_ParamMessage = 'Invalid Field';
 
-    public $_table_column_array = ['mobile','email','address','city','state','zip','country','min','free','tax','shipping','shippingPrice','allowDistance','facebook','instagram','twitter','google_playstore','apple_appstore','web_footer'];
-    public $_table_column_edit = ['id','mobile','email','address','city','state','zip','country','min','free','tax','shipping','shippingPrice','allowDistance','facebook','instagram','twitter','google_playstore','apple_appstore','web_footer'];
+    public $_table_column_array = ['mobile','email','address','city','state','zip','country','min','free','tax','shipping','shippingPrice','allowDistance','facebook','instagram','twitter','google_playstore','apple_appstore','web_footer', 'restaurant_distance', 'silver_display'];
+    public $_table_column_edit = ['id','mobile','email','address','city','state','zip','country','min','free','tax','shipping','shippingPrice','allowDistance','facebook','instagram','twitter','google_playstore','apple_appstore','web_footer', 'restaurant_distance', 'silver_display'];
     public $required = ['id'];
 
     public function __construct(){

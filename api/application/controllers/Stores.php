@@ -52,6 +52,27 @@ class Stores extends CI_Controller{
             echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
         }
     }
+   
+    public function silver(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Stores_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->Stores_model->get_for_silver_display();
+            if($data != null){
+                echo $this->json->response($data,$this->_OKmessage,$this->_statusOK);
+            }else{
+                echo $this->json->response($this->db->error(),$this->_Errmessage,$this->_statusErr);
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
     
     public function getAllStoresbyAgent(){
         $agent = $this->input->request_headers();
@@ -280,6 +301,60 @@ class Stores extends CI_Controller{
         }
     }
 
+    public function addProducts(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Stores_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->check_array_values($_POST,$this->required);
+            if(isset($data) && !empty($data)){
+                echo $this->json->response($data,$this->_Errmessage,$this->_statusErr);
+            }else {
+                $result = $this->Stores_model->addProducts($_POST,$_POST['id']);
+                
+                if($result != null){
+                    echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
+                }else{
+                    echo $this->json->response(['error'=>'something went wrong.'],$this->_Errmessage,$this->_statusErr);
+                }
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
+  
+    public function addCuisines(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Stores_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->check_array_values($_POST,$this->required);
+            if(isset($data) && !empty($data)){
+                echo $this->json->response($data,$this->_Errmessage,$this->_statusErr);
+            }else {
+                $result = $this->Stores_model->addCuisines($_POST,$_POST['id']);
+                
+                if($result != null){
+                    echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
+                }else{
+                    echo $this->json->response(['error'=>'something went wrong.'],$this->_Errmessage,$this->_statusErr);
+                }
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
+
     public function editList(){
         $agent = $this->input->request_headers();
         // $saveLogInfo = array(
@@ -355,7 +430,38 @@ class Stores extends CI_Controller{
             }else{
                 $result = $this->Stores_model->saveList($_POST);
                 if($result != null){
-                    $id = $this->db->insert_id();
+                    $id = $result;
+                    $data = $this->Stores_model->getByIdValue($id);
+                    echo $this->json->response($data,$this->_OKmessage,$this->_statusOK);
+                }else{
+                    echo $this->json->response(['error'=>'Something Went Wrong.'],$this->_Errmessage,$this->_statusErr);
+                }
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
+   
+    public function addToSilver(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Stores_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->check_array_values($_POST,['id']);
+            $param = $this->check_params($_POST,['id']);
+            if(isset($data) && !empty($data)){
+                echo $this->json->response($data,$this->_Errmessage,$this->_statusErr);
+            }else if( count($param) >0 ){
+                echo $this->json->response(array_values($param),$this->_ParamMessage,$this->_statusErr);
+              }else{
+                $result = $this->Stores_model->addToSilver($_POST);
+                if($result != null){
+                    $id = $result;
                     $data = $this->Stores_model->getByIdValue($id);
                     echo $this->json->response($data,$this->_OKmessage,$this->_statusOK);
                 }else{
@@ -382,6 +488,32 @@ class Stores extends CI_Controller{
                 echo $this->json->response($data,$this->_Errmessage,$this->_statusErr);
             }else{
                 $result = $this->Stores_model->deleteList($_POST['id']);
+                if($result != null){
+                    echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
+                }else{
+                    echo $this->json->response(['error'=>'Something Went Wrong.'],$this->_Errmessage,$this->_statusErr);
+                }
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
+    
+    public function removeFromSilver(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Stores_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->check_array_values($_POST,$this->required);
+            if(isset($data) && !empty($data)){
+                echo $this->json->response($data,$this->_Errmessage,$this->_statusErr);
+            }else{
+                $result = $this->Stores_model->deleteFromSilver($_POST['id']);
                 if($result != null){
                     echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
                 }else{

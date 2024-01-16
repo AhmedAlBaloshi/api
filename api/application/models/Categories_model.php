@@ -49,7 +49,8 @@ class Categories_model extends Main_model
         // return $data;
         $this->db->select('cates.name_en as name_en,cates.name_ar as name_ar,cates.id as cid,usr.name_en as store_name_en,usr.name_ar as store_name_ar,cates.status as status,cates.storeId as storeId');
         $this->db->from("categories as cates");
-        $this->db->join('store as usr','cates.storeId = usr.uid');
+        $this->db->join('store as usr','cates.storeId = usr.user_id');
+        $this->db->order_by('cid', 'desc');
         $data = $this->db->get()->result();
         return $data;
     }

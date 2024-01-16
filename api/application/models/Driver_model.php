@@ -122,8 +122,27 @@ class Driver_model extends Main_model
     }
 
     public function get_all_users(){
-        $data = $this->get($this->table_name);
+        $this->db->select('*');
+        $this->db->from($this->table_name);
+        $this->db->order_by('id', 'desc');
+        $data = $this->db->get()->result();
         return $data;
+    }
+
+    public function changeDriver($post){
+        // return $data;
+        $where = "id = ".$post['id'];
+        $data = ['did' => $post['selectedDriver'], 'status'=> 'changed_driver_to_another'];
+        $this->update('orders',$data,$where);
+
+        $data = [
+            'order_id' => $post['id'],
+            'status' => 'changed_driver_to_another',
+            'reason' => $post['reason']
+    ];
+        $track = $this->insert('order_track',$data);
+        return true;
+       
     }
 
     public function getAllDriversByAgent(){

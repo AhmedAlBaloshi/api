@@ -3,7 +3,7 @@
 require_once APPPATH.'/core/Main_model.php';
 class Majorcategories_model extends Main_model
 {
-    public $table_name = "major_categories";
+    public $table_name = "store_types";
 	public function __construct(){
 		parent::__construct();
         $this->load->library('upload','encrypt');
@@ -22,6 +22,7 @@ class Majorcategories_model extends Main_model
 
     public function editList($data,$id){
         $where = "id = ".$id;
+        unset($data['id']);
         return $this->update($this->table_name,$data,$where);
     }
 
@@ -37,7 +38,11 @@ class Majorcategories_model extends Main_model
     }
 
     public function get_all(){
-        $data = $this->get($this->table_name);
+        $this->db->select('*');
+        $this->db->from($this->table_name);
+        $this->db->order_by('id', 'desc');
+        $data = $this->db->get()->result();
+     
         return $data;
     }
 

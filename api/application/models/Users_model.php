@@ -1,60 +1,65 @@
 <?php
-  
-require_once APPPATH.'/core/Main_model.php';
+
+require_once APPPATH . '/core/Main_model.php';
 class Users_model extends Main_model
 {
     public $table_name = "users";
     public $mail_app_name = 'JimGate';
-	public $mail_address = 'Ibra, Al Sharqya, Oman';
-	public $mail_email = 'info@jimgate.com';
-	public $mail_phone = '+968 97723305';
-	public function __construct(){
-		parent::__construct();
-        $this->load->library('upload','encrypt');
+    public $mail_address = 'Ibra, Al Sharqya, Oman';
+    public $mail_email = 'info@jimgate.com';
+    public $mail_phone = '+968 97723305';
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->library('upload', 'encrypt');
         $this->load->library('encryption');
         $this->load->helper('string');
     }
 
-    public function login($user_data){
-        $where = "email = '".$user_data['email']."' ";
-        $password = $this->get_by($this->table_name,$where,'password','row');
-        if($password != null){
-            if(password_verify($user_data['password'],$password->password)){
-                $data = $this->get($this->table_name,$where);
+    public function login($user_data)
+    {
+        $where = "email = '" . $user_data['email'] . "' ";
+        $password = $this->get_by($this->table_name, $where, 'password', 'row');
+        if ($password != null) {
+            if (password_verify($user_data['password'], $password->password)) {
+                $data = $this->get($this->table_name, $where);
                 return $data;
-            }else{
+            } else {
                 return null;
             }
-        }else{
+        } else {
             return null;
         }
     }
 
-    public function LoginWithPhoneAndPassword($user_data){
-        $where = "mobile = '".$user_data['mobile']."' AND country_code = '".$user_data['cc']."'";
-        $password = $this->get_by($this->table_name,$where,'password','row');
-        if($password != null){
-            if(password_verify($user_data['password'],$password->password)){
-                $data = $this->get($this->table_name,$where);
+    public function LoginWithPhoneAndPassword($user_data)
+    {
+        $where = "mobile = '" . $user_data['mobile'] . "' AND country_code = '" . $user_data['cc'] . "'";
+        $password = $this->get_by($this->table_name, $where, 'password', 'row');
+        if ($password != null) {
+            if (password_verify($user_data['password'], $password->password)) {
+                $data = $this->get($this->table_name, $where);
                 return $data;
-            }else{
+            } else {
                 return null;
             }
-        }else{
+        } else {
             return null;
         }
     }
 
-    public function checkMobileNumber($user_data){
-        $where = "mobile = '".$user_data['mobile']."' AND country_code = '".$user_data['cc']."'";
-        $password = $this->get_by($this->table_name,$where,'id','row');
-        if($password != null){
+    public function checkMobileNumber($user_data)
+    {
+        $where = "mobile = '" . $user_data['mobile'] . "' AND country_code = '" . $user_data['cc'] . "'";
+        $password = $this->get_by($this->table_name, $where, 'id', 'row');
+        if ($password != null) {
             return $password;
-        }else{
+        } else {
             return null;
         }
     }
-    public function sendBulk($to_address,$message,$subject){
+    public function sendBulk($to_address, $message, $subject)
+    {
         $this->load->library('email');
         $this->email->clear();
         $this->email->from('info@jimgate.com');
@@ -63,20 +68,22 @@ class Users_model extends Main_model
         $this->email->subject($subject);
         $this->email->set_mailtype("html");
         $this->email->message($message);
-        if($this->email->send()===TRUE){
+        if ($this->email->send() === TRUE) {
             return true;
         }
         return false;
     }
 
-    public function sendMails($emails,$message,$subject){
-        foreach($emails as $victim){
-            $this->sendBulk($victim,$message,$subject);
+    public function sendMails($emails, $message, $subject)
+    {
+        foreach ($emails as $victim) {
+            $this->sendBulk($victim, $message, $subject);
         }
         return true;
     }
 
-    public function verificationLink($email,$url){
+    public function verificationLink($email, $url)
+    {
         $this->load->library('email');
         $this->email->clear();
         $this->email->from('info@jimgate.com');
@@ -90,23 +97,65 @@ class Users_model extends Main_model
             'address' => $this->mail_address,
             'name' => $this->mail_app_name,
         );
-        $msg = $this->load->view('Email',$data,true);
+        $msg = $this->load->view('Email', $data, true);
         $this->email->message($msg);
-        if($this->email->send()===TRUE){
+        if ($this->email->send() === TRUE) {
             return true;
         }
         return false;
     }
 
-    public function getUsersNames($ids){
+    public function sendNotification($user, $post)
+    {
+        $this->db->select('id, fcm_token');
+        $this->db->from("users");
+        $this->db->where_in('id', $user['id']);
+        $user = $this->db->get()->result();
+        // return $user[0]->fcm_token
+        $message = $post['message'];
+        $SERVER_API_KEY = "AAAAJ2sHtbs:APA91bG5RW7XbxBUhdOCjPu4VjDTGmJ_ggNG67lEJM_hzEZSeTH4bQdHxIlrp6q3NQ9X_Z_0Sif-TXJ3ly11IKbNgHT-r9XeM7iWgJPvfc6XdVw94aJl9NrXl8OKtUBxIPQbiEyegJs_";
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://fcm.googleapis.com/fcm/send',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => '{
+    "data":{},
+    "notification":{
+        "body":"' . $message . '",
+        "title":"' . $post['title'] . '"
+    },
+    "to":"' . $user[0]->fcm_token . '"
+    }',
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: key=' . $SERVER_API_KEY,
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+    }
+
+    public function getUsersNames($ids)
+    {
         $this->db->select('*');
         $this->db->from($this->table_name);
-        $uid = explode(',',$ids);
-        $this->db->where_in('id',$uid);
+        $uid = explode(',', $ids);
+        $this->db->where_in('id', $uid);
         return $this->db->get()->result();
     }
 
-    public function contactResponse($email){
+    public function contactResponse($email)
+    {
         $this->load->library('email');
         $this->email->clear();
         $this->email->from('info@jimgate.com');
@@ -115,19 +164,20 @@ class Users_model extends Main_model
         $this->email->subject('Thanks for contacting us');
         $this->email->set_mailtype("html");
         $data = array(
-        'eamil' => $email,
-        'address' => $this->mail_address,
-        'name' => $this->mail_app_name,
+            'eamil' => $email,
+            'address' => $this->mail_address,
+            'name' => $this->mail_app_name,
         );
-        $msg = $this->load->view('Contacts',$data,true);
+        $msg = $this->load->view('Contacts', $data, true);
         $this->email->message($msg);
-        if($this->email->send()===TRUE){
+        if ($this->email->send() === TRUE) {
             return true;
         }
         return false;
     }
 
-    public function replyToContact($email,$reply){
+    public function replyToContact($email, $reply)
+    {
         $this->load->library('email');
         $this->email->clear();
         $this->email->from('info@jimgate.com');
@@ -136,222 +186,259 @@ class Users_model extends Main_model
         $this->email->subject('Thanks for contacting us');
         $this->email->set_mailtype("html");
         $data = array(
-        'eamil' => $email,
+            'eamil' => $email,
         );
         $this->email->message($reply);
-        if($this->email->send()===TRUE){
+        if ($this->email->send() === TRUE) {
             return true;
         }
         return false;
     }
-    
-    public function get_admin(){
+
+    public function get_admin()
+    {
         $where = "type = 'admin' ";
-        $data = $this->get($this->table_name,$where);
+        $data = $this->get($this->table_name, $where);
         return $data;
     }
 
-    public function getById($id){
-        $where = 'id = '.$id;
-        $data = $this->get($this->table_name,$where,'results');
+    public function getById($id)
+    {
+        $where = 'id = ' . $id;
+        $data = $this->get($this->table_name, $where, 'results');
         return $data;
     }
 
-    public function getAdmins(){
-        $where = "type = 'admin'";
-        $data = $this->get($this->table_name,$where,'results');
+    public function getAdmins()
+    {
+        $this->db->select('*');
+        $this->db->from($this->table_name);
+        $this->db->where('type', 'admin');
+        $this->db->order_by('id', 'desc');
+        $data = $this->db->get()->result();
+
         return $data;
     }
-    
-    public function countAllUsers(){
+
+    public function countAllUsers()
+    {
         $this->db->select('COUNT(id) AS totalUsers')->from($this->table_name);
         return $this->db->get()->result();
         return $data;
     }
 
-    public function get_all_users(){
+    public function get_all_users()
+    {
         $data = $this->get($this->table_name);
         return $data;
     }
 
-    public function getUsers(){
-        $where = "type = 'user'";
-        $data = $this->get($this->table_name,$where,'results');
+    public function getUsers()
+    {
+        $this->db->select('*');
+        $this->db->from($this->table_name);
+        $this->db->where('type', 'user');
+        $this->db->order_by('id', 'desc');
+        $data = $this->db->get()->result();
         return $data;
     }
 
-    public function allEmails(){
+    public function allEmails()
+    {
         $sql = "SELECT group_concat(email separator ',') as email FROM `users`";
         $query = $this->db->query($sql);
         $array1 = $query->row_array();
-        $arr = explode(',',$array1['email']);
+        $arr = explode(',', $array1['email']);
         return $arr;
     }
 
 
-    public function get_user_by_id($id){
-        $where = 'id = '.$id;
-        $data = $this->get($this->table_name,$where);
+    public function get_user_by_id($id)
+    {
+        $where = 'id = ' . $id;
+        $data = $this->get($this->table_name, $where);
         return $data;
     }
 
-    public function save_deleted_users($data){
+    public function save_deleted_users($data)
+    {
         $deleted_users_table = "users_deleted";
-        return $this->insert($deleted_users_table,$data);
+        return $this->insert($deleted_users_table, $data);
     }
 
-    public function save_users($data){
-        $data['password'] = password_hash($data['password'],PASSWORD_BCRYPT);
-        return $this->insert($this->table_name,$data);
+    public function save_users($data)
+    {
+        $data['full_name'] = $data['first_name'];
+        unset($data['first_name']);
+        $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+        return $this->insert($this->table_name, $data);
     }
 
-    public function edit_users($data,$id){
-        $where = "id = ".$id;
-        return $this->update($this->table_name,$data,$where);
+    public function edit_users($data, $id)
+    {
+        $where = "id = " . $id;
+        return $this->update($this->table_name, $data, $where);
     }
 
-    public function verify($id){
-        $where = "id = ".$id;
+    public function verify($id)
+    {
+        $where = "id = " . $id;
         $data = [
             'verified' => '1'
         ];
-        return $this->update($this->table_name,$data,$where);
-    }    
-    
-    public function update_latlng($data,$id){
+        return $this->update($this->table_name, $data, $where);
+    }
+
+    public function update_latlng($data, $id)
+    {
         $values = [
             'lat' => $data['lat'],
             'lng' => $data['lng'],
         ];
-        $where = "id = ".$id;
-        return $this->update($this->table_name,$values,$where);
+        $where = "id = " . $id;
+        return $this->update($this->table_name, $values, $where);
     }
 
-    public function update_fcm($data,$id){
+    public function update_fcm($data, $id)
+    {
         $values = [
             'fcm_token' => $data['fcm_token'],
         ];
-        $where = "id = ".$id;
-        return $this->update($this->table_name,$values,$where);
+        $where = "id = " . $id;
+        return $this->update($this->table_name, $values, $where);
     }
 
-    public function update_status($data,$id){
+    public function update_status($data, $id)
+    {
         $values = [
             'status' => $data['status'],
         ];
-        $where = "id = ".$id;
-        return $this->update($this->table_name,$values,$where);
+        $where = "id = " . $id;
+        return $this->update($this->table_name, $values, $where);
     }
-    
-    public function update_verified($data,$id){
+
+    public function update_verified($data, $id)
+    {
         $values = [
             'verified' => $data['verified'],
         ];
-        $where = "id = ".$id;
-        return $this->update($this->table_name,$values,$where);
-    }
-    
-    public function update_password($data,$id){
-        $where = 'email ="'.$id.'"';
-        $values = [
-            'password' => password_hash($data,PASSWORD_BCRYPT)
-        ];
-        return $this->update($this->table_name,$values,$where);
+        $where = "id = " . $id;
+        return $this->update($this->table_name, $values, $where);
     }
 
-    public function resetPasswordWithPhone($data,$id){
-        $where = "mobile = ".$id;
+    public function update_password($data, $id)
+    {
+        $where = 'email ="' . $id . '"';
         $values = [
-            'password' => password_hash($data,PASSWORD_BCRYPT)
+            'password' => password_hash($data, PASSWORD_BCRYPT)
         ];
-        return $this->update($this->table_name,$values,$where);
-    }
-    
-    public function resetPasswordWithPhoneForDriver($data,$id){
-        $where = "mobile = ".$id;
-        $values = [
-            'password' => password_hash($data,PASSWORD_BCRYPT)
-        ];
-        return $this->update('drivers',$values,$where);
+        return $this->update($this->table_name, $values, $where);
     }
 
-    public function update_passwordDriver($data,$id){
-        $where = 'email ="'.$id.'"';
+    public function resetPasswordWithPhone($data, $id)
+    {
+        $where = "mobile = " . $id;
         $values = [
-            'password' => password_hash($data,PASSWORD_BCRYPT)
+            'password' => password_hash($data, PASSWORD_BCRYPT)
         ];
-        return $this->update('drivers',$values,$where);
+        return $this->update($this->table_name, $values, $where);
     }
-    
-    public function delete_users($id, $email){
+
+    public function resetPasswordWithPhoneForDriver($data, $id)
+    {
+        $where = "mobile = " . $id;
+        $values = [
+            'password' => password_hash($data, PASSWORD_BCRYPT)
+        ];
+        return $this->update('drivers', $values, $where);
+    }
+
+    public function update_passwordDriver($data, $id)
+    {
+        $where = 'email ="' . $id . '"';
+        $values = [
+            'password' => password_hash($data, PASSWORD_BCRYPT)
+        ];
+        return $this->update('drivers', $values, $where);
+    }
+
+    public function delete_users($id, $email)
+    {
         //$where = "id =".$id;
-        $where = "id = '".$id."' AND email = '".$email."'";
-        return $this->delete($this->table_name,$where);
+        $where = "id = '" . $id . "' AND email = '" . $email . "'";
+        return $this->delete($this->table_name, $where);
     }
 
-    public function email_exists($email){
-        $where = 'email ="'.$email.'"';
-        $data = $this->get($this->table_name,$where);
-        if($data != null){
+    public function email_exists($email)
+    {
+        $where = 'email ="' . $email . '"';
+        $data = $this->get($this->table_name, $where);
+        if ($data != null) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function phoneExist($mobile){
-        $where = 'mobile ="'.$mobile.'"';
-        $data = $this->get($this->table_name,$where);
-        if($data != null){
+    public function phoneExist($mobile)
+    {
+        $where = 'mobile ="' . $mobile . '"';
+        $data = $this->get($this->table_name, $where);
+        if ($data != null) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function sendOTPDriver($email){
-        $where = 'email ="'.$email.'"';
-        $data = $this->get('drivers',$where);
-        if($data != null){
+    public function sendOTPDriver($email)
+    {
+        $where = 'email ="' . $email . '"';
+        $data = $this->get('drivers', $where);
+        if ($data != null) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
-    
-    public function upload_user_file($file){
+
+    public function upload_user_file($file)
+    {
         return $this->upload_file($file);
     }
-    
-    public function saveUserLogs($data){
+
+    public function saveUserLogs($data)
+    {
         $data = $this->saveLogs($data);
         return $data;
     }
 
-    public function saveVerifyCode($otp,$mobile){
-         $values = [
+    public function saveVerifyCode($otp, $mobile)
+    {
+        $values = [
             'otp' => $otp,
             'email' => $mobile,
             'status' => 0
         ];
-        $info =  $this->insert('otp',$values);
+        $info =  $this->insert('otp', $values);
         $id = $this->db->insert_id();
-            $returnValue = [
-                'code' => $otp,
-                'id' =>$id
-            ];
+        $returnValue = [
+            'code' => $otp,
+            'id' => $id
+        ];
         return $returnValue;
     }
 
-    public function saveOTP($email){
-         $otp = $this->random_number();
-         $values = [
+    public function saveOTP($email)
+    {
+        $otp = $this->random_number();
+        $values = [
             'otp' => $otp,
             'email' => $email,
             'status' => 0
         ];
-        $info = $this->insert('otp',$values);
-        if($info != null){
+        $info = $this->insert('otp', $values);
+        if ($info != null) {
             $this->load->library('email');
             $this->email->clear();
             $this->email->from('info@jimgate.com');
@@ -365,45 +452,46 @@ class Users_model extends Main_model
                 'address' => $this->mail_address,
                 'name' => $this->mail_app_name,
             );
-            $msg = $this->load->view('Reset',$data,true);
+            $msg = $this->load->view('Reset', $data, true);
 
             $this->email->message($msg);
             $this->email->send();
             $id = $this->db->insert_id();
             $returnValue = [
                 'code' => $otp,
-                'id' =>$id
+                'id' => $id
             ];
             return $returnValue;
-        }else{
+        } else {
             return $info;
         }
     }
 
-    public function verifyOTP($id,$otp){
-        $where = "otp = ".$otp." AND status = 0 AND id = ".$id;
-        $data = $this->get('otp',$where);
+    public function verifyOTP($id, $otp)
+    {
+        $where = "otp = " . $otp . " AND status = 0 AND id = " . $id;
+        $data = $this->get('otp', $where);
         return $data;
     }
 
-    public function updateOTPStatus($id){
+    public function updateOTPStatus($id)
+    {
         $values = [
             'status' => '1',
         ];
-        $where = "id = ".$id;
-        return $this->update('otp',$values,$where);
+        $where = "id = " . $id;
+        return $this->update('otp', $values, $where);
     }
 
-    function random_number($maxlength = 5) {
+    function random_number($maxlength = 5)
+    {
         $chary = array(
-                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-                        );
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+        );
         $return_str = "";
-        for ( $x=0; $x<=$maxlength; $x++ ) {
-            $return_str .= $chary[rand(0, count($chary)-1)];
+        for ($x = 0; $x <= $maxlength; $x++) {
+            $return_str .= $chary[rand(0, count($chary) - 1)];
         }
         return $return_str;
     }
-
-   
 }

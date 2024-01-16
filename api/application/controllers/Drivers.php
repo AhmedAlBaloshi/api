@@ -58,6 +58,33 @@ class Drivers extends CI_Controller{
             echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
         }
     }
+
+    public function changeDriver(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->Stores_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->check_array_values($_POST,$this->required);
+            if(isset($data) && !empty($data)){
+                echo $this->json->response($data,$this->_Errmessage,$this->_statusErr);
+            }else {
+                $result = $this->Driver_model->changeDriver($_POST);
+                
+                if($result != null){
+                    echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
+                }else{
+                    echo $this->json->response(['error'=>'something went wrong.'],$this->_Errmessage,$this->_statusErr);
+                }
+            }
+        }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
  
     public function getAllDriversByAgent(){
         $agent = $this->input->request_headers();

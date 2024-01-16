@@ -13,6 +13,8 @@ class General extends CI_Controller{
 
     public $_table_column_array = ['mobile','email','address','city','state','zip','country','min','free','tax','shipping','shippingPrice','allowDistance','facebook','instagram','twitter','google_playstore','apple_appstore','web_footer', 'restaurant_distance', 'silver_display'];
     public $_table_column_edit = ['id','mobile','email','address','city','state','zip','country','min','free','tax','shipping','shippingPrice','allowDistance','facebook','instagram','twitter','google_playstore','apple_appstore','web_footer', 'restaurant_distance', 'silver_display'];
+    public $_table_column_edit_for_sort = ['id','sort_column', 'sort_order', 'sort_value', 'sort_range'];
+    public $_table_column_array_for_sort = ['sort_column', 'sort_order', 'sort_value', 'sort_range'];
     public $required = ['id'];
 
     public function __construct(){
@@ -139,6 +141,36 @@ class General extends CI_Controller{
                 echo $this->json->response(array_values($param),$this->_ParamMessage,$this->_statusErr);
             }else {
                 $result = $this->General_model->editList($_POST,$_POST['id']);
+
+                if($result != null){
+                    echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
+                }else{
+                    echo $this->json->response(['error'=>'something went wrong.'],$this->_Errmessage,$this->_statusErr);
+                }
+            }
+         }else{
+            echo $this->json->response('No Token Found',$this->_Errmessage,$this->_statusErr);
+        }
+    }
+    
+    public function saveSort(){
+        $agent = $this->input->request_headers();
+        // $saveLogInfo = array(
+        //     'url' => $this->uri->uri_string(),
+        //     'agent' => json_encode($agent),
+        //     'datetime' => date('Y-m-d h:i:s') 
+        // );
+        // $this->General_model->saveUserLogs($saveLogInfo);
+        $auth  = $this->input->get_request_header('Basic');
+        if($auth && $auth == $this->config->item('encryption_key')){
+            $data = $this->check_array_values($_POST,$this->required);
+            $param = $this->check_params($_POST,$this->_table_column_edit_for_sort);
+            if(isset($data) && !empty($data)){
+                echo $this->json->response($data,$this->_Errmessage,$this->_statusErr);
+            } else if(count($param) >0){
+                echo $this->json->response(array_values($param),$this->_ParamMessage,$this->_statusErr);
+            }else {
+                $result = $this->General_model->editList($_POST,$_POST['id'], true);
 
                 if($result != null){
                     echo $this->json->response($result,$this->_OKmessage,$this->_statusOK);
